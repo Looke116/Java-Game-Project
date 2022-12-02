@@ -8,19 +8,16 @@ import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
+import static utils.Consts.*;
 
 public class Window {
 
-    private String title;
-    private int width;
-    private int height;
-    private boolean vSync;
-
-    private static final float FOV = (float) Math.toRadians(60);
-    private final float Z_NEAR = 0.01f;
-    private final float Z_FAR = 1000f;
-    private long id;
     private final Matrix4f projectionMatrix;
+    private String title;
+    private final int width;
+    private final int height;
+    private final boolean vSync;
+    private final long id;
 
     public Window(String title, int width, int height, boolean vSync) {
         this.width = width;
@@ -65,21 +62,20 @@ public class Window {
 
     private void enableParam() {
         GL.createCapabilities();
-        glClearColor(0.0f,0.0f,0.0f,0.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_STENCIL_TEST);
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
     }
 
-    public void update() {
+    public void render() {
         glfwSwapBuffers(id);
-        glfwPollEvents();
     }
 
-//    public void pollEvents() {
-//        glfwPollEvents();
-//    }
+    public void input() {
+        glfwPollEvents();
+    }
 
     public boolean isKeyPressed(int keycode) {
         return glfwGetKey(id, keycode) == GLFW_PRESS;

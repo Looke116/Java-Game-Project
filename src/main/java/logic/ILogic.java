@@ -1,12 +1,14 @@
 package logic;
 
+import engine.io.MouseInput;
+
 public interface ILogic {
 
     void init() throws Exception;
 
     void input();
 
-    void update();
+    void update(float interval, MouseInput mouseInput);
 
     void render();
 

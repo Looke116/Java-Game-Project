@@ -18,6 +18,14 @@
         <lwjgl.natives>natives-windows</lwjgl.natives>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>maven-clojars</id>
+            <name>Clojars repository</name>
+            <url>https://repo.clojars.org/</url>
+        </repository>
+    </repositories>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -129,6 +137,11 @@
             <groupId>org.joml</groupId>
             <artifactId>joml</artifactId>
             <version>${joml.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>slick-util</groupId>
+            <artifactId>slick-util</artifactId>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
 </project>

@@ -1,5 +1,6 @@
 package engine;
 
+import engine.io.MouseInput;
 import logic.ILogic;
 import main.Launcher;
 
@@ -11,12 +12,21 @@ public class GameEngine {
     // Timing Variables
     private static final long NANOSECOND = 1000000000L;
     private static final float FRAMERATE = 60;
-    private static float frametime = 1.0f / FRAMERATE;
+    private static final float frametime = 1.0f / FRAMERATE;
     private static int fps;
 
     private boolean isRunning;
     private Window window;
     private ILogic gameLogic;
+    private MouseInput mouseInput;
+
+    public static int getFps() {
+        return fps;
+    }
+
+    public static void setFps(int fps) {
+        GameEngine.fps = fps;
+    }
 
     public void start() throws Exception {
         if (isRunning) return;
@@ -25,6 +35,8 @@ public class GameEngine {
         window = Launcher.getWindow();
         gameLogic = Launcher.getGame();
         gameLogic.init();
+        mouseInput = new MouseInput();
+        mouseInput.init();
 
         run();
     }
@@ -71,7 +83,7 @@ public class GameEngine {
 
             //NOTE
             if (canRender) {
-                update();
+                update(frametime);
                 render();
                 frames++;
             }
@@ -79,30 +91,23 @@ public class GameEngine {
     }
 
     private void input() {
+        mouseInput.input();
         gameLogic.input();
-//        window.pollEvents();
+        window.input();
     }
 
-    private void update() {
-        gameLogic.update();
+    private void update(float interval) {
+        gameLogic.update(interval, mouseInput);
     }
 
     private void render() {
         gameLogic.render();
-        window.update();
+        window.render();
     }
 
     private void cleanup() {
         gameLogic.cleanup();
         window.cleanup();
         glfwTerminate();
-    }
-
-    public static int getFps() {
-        return fps;
-    }
-
-    public static void setFps(int fps) {
-        GameEngine.fps = fps;
     }
 }
