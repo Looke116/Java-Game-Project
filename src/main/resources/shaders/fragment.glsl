@@ -26,5 +26,10 @@ void main() {
     float damperFactor = pow(specularFactor, shineDamper);
     vec3 specularLight = damperFactor * reflectivity * lightColor;
 
-    fragColor = vec4(diffuse, 1.0) * texture(textureSampler, textureCoords) + vec4(specularLight, 1.0);
+    vec4 textureColor = texture(textureSampler, textureCoords);
+    if(textureColor.a < 0.5){
+        discard;
+    }
+
+    fragColor = vec4(diffuse, 1.0) * textureColor + vec4(specularLight, 1.0);
 }

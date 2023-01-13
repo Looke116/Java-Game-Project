@@ -2,6 +2,7 @@ package utils;
 
 import engine.entity.Entity;
 import engine.rendering.Camera;
+import engine.terrain.Terrain;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -14,6 +15,16 @@ public class Transformation {
                 .rotateY((float) Math.toRadians(entity.getRotation().y))
                 .rotateZ((float) Math.toRadians(entity.getRotation().z))
                 .scale(entity.getScale());
+        return matrix;
+    }
+
+    public static Matrix4f createTransformationMatrix(Terrain terrain) {
+        Matrix4f matrix = new Matrix4f();
+        matrix.identity().translate(terrain.getPosition())
+                .rotateX((float) Math.toRadians(terrain.getRotation().x))
+                .rotateY((float) Math.toRadians(terrain.getRotation().y))
+                .rotateZ((float) Math.toRadians(terrain.getRotation().z))
+                .scale(terrain.getScale());
         return matrix;
     }
 

@@ -1,83 +1,161 @@
 package engine.rendering;
 
-import engine.Window;
 import engine.entity.Entity;
+import engine.entity.Model;
 import engine.lighting.Light;
+import engine.terrain.Terrain;
+import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
+import static utils.Constants.*;
 import static utils.Transformation.createTransformationMatrix;
 import static utils.Transformation.getViewMatrix;
 
 public class Render {
 
-    private final Window window;
-    private ShaderProgram shaderProgram;
+    private Matrix4f projectionMatrix;
+    private ShaderProgram entityShaderProgram;
+    private ShaderProgram terrainShaderProgram;
 
-    public Render(Window window) {
+    public Render() {
         GL.createCapabilities();
-        this.window = window;
-    }
-
-    public void init() {
+        enableCulling();
+        projectionMatrix = createProjectionMatrix();
         try {
-            shaderProgram = new ShaderProgram();
-            shaderProgram.createShader(GL_VERTEX_SHADER, "vertex.glsl");
-            shaderProgram.createShader(GL_FRAGMENT_SHADER, "fragment.glsl");
-            shaderProgram.link();
-            shaderProgram.createUniform("textureSampler");
-            shaderProgram.createUniform("transformationMatrix");
-            shaderProgram.createUniform("projectionMatrix");
-            shaderProgram.createUniform("viewMatrix");
-            shaderProgram.createUniform("lightPosition");
-            shaderProgram.createUniform("lightColor");
-            shaderProgram.createUniform("shineDamper");
-            shaderProgram.createUniform("reflectivity");
+            entityShaderProgram = new ShaderProgram();
+            terrainShaderProgram = new ShaderProgram();
+            initEntityShader();
+            initTerrainShader();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void render(List<Entity> entities, Camera camera, Light light) {
-        clear();
-        shaderProgram.bind();
-
-        for (Entity entity : entities) {
-            shaderProgram.setUniform("textureSampler", 0);
-            shaderProgram.setUniform("transformationMatrix", createTransformationMatrix(entity));
-            shaderProgram.setUniform("projectionMatrix", window.updateProjectionMatrix());
-            shaderProgram.setUniform("viewMatrix", getViewMatrix(camera));
-            shaderProgram.setUniform("lightPosition", light.getPosition());
-            shaderProgram.setUniform("lightColor", light.getColor());
-            shaderProgram.setUniform("shineDamper", entity.getShineDamper());
-            shaderProgram.setUniform("reflectivity", entity.getReflectivity());
-
-            glBindVertexArray(entity.getMesh().getId());
-            glEnableVertexAttribArray(0);
-            glEnableVertexAttribArray(1);
-            glEnableVertexAttribArray(2);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, entity.getTexture().getId());
-
-            glDrawElements(GL_TRIANGLES, entity.getMesh().getVertexCount(), GL_UNSIGNED_INT, 0);
-
-            glDisableVertexAttribArray(0);
-            glDisableVertexAttribArray(1);
-            glDisableVertexAttribArray(2);
-            glBindVertexArray(0);
-        }
-        shaderProgram.unbind();
-    }
-
     public void clear() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0, 0, 1, 1);
+    }
+
+    private Matrix4f createProjectionMatrix() {
+        float aspectRation = (float) WIDTH / HEIGHT;
+        projectionMatrix = new Matrix4f();
+        return projectionMatrix.setPerspective(FOV, aspectRation, Z_NEAR, Z_FAR);
+    }
+
+    private void initShaderCommon(ShaderProgram shaderProgram) throws Exception {
+        shaderProgram.link();
+        shaderProgram.createUniform("textureSampler");
+        shaderProgram.createUniform("transformationMatrix");
+        shaderProgram.createUniform("projectionMatrix");
+        shaderProgram.createUniform("viewMatrix");
+        shaderProgram.createUniform("lightPosition");
+        shaderProgram.createUniform("lightColor");
+        shaderProgram.createUniform("shineDamper");
+        shaderProgram.createUniform("reflectivity");
+    }
+
+    private void initEntityShader() throws Exception {
+        entityShaderProgram.createShader(GL_VERTEX_SHADER, "vertex.glsl");
+        entityShaderProgram.createShader(GL_FRAGMENT_SHADER, "fragment.glsl");
+
+        initShaderCommon(entityShaderProgram);
+        entityShaderProgram.createUniform("useFakeLighting");
+    }
+
+    private void initTerrainShader() throws Exception{
+        terrainShaderProgram.createShader(GL_VERTEX_SHADER, "terrainVertex.glsl");
+        terrainShaderProgram.createShader(GL_FRAGMENT_SHADER, "terrainFragment.glsl");
+
+        initShaderCommon(terrainShaderProgram);
+    }
+
+    private static void bindModel(Model model, ShaderProgram shaderProgram) {
+        glBindVertexArray(model.getMesh().getId());
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, model.getTexture().getId());
+        shaderProgram.setUniform("shineDamper", model.getShineDamper());
+        shaderProgram.setUniform("reflectivity", model.getReflectivity());
+    }
+
+    static void bindEntityModel(Model model, ShaderProgram shaderProgram) {
+        bindModel(model, shaderProgram);
+
+        if (model.getTransparency()) {
+            disableCulling();
+        }
+
+        shaderProgram.setUniform("useFakeLighting", model.isUseFakeLighting());
+    }
+
+    static void bindTerrainModel(Model model, ShaderProgram shaderProgram) {
+        bindModel(model, shaderProgram);
+    }
+
+    private void setupProgram(Camera camera, Light light, ShaderProgram shaderProgram) {
+        shaderProgram.bind();
+        shaderProgram.setUniform("textureSampler", 0);
+        shaderProgram.setUniform("projectionMatrix", projectionMatrix);
+        shaderProgram.setUniform("viewMatrix", getViewMatrix(camera));
+
+        shaderProgram.setUniform("lightPosition", light.getPosition());
+        shaderProgram.setUniform("lightColor", light.getColor());
+    }
+
+    static void unbindModel() {
+        enableCulling();
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(2);
+        glBindVertexArray(0);
+    }
+
+    public void renderEntities(Map<Model, List<Entity>> entities, Camera camera, Light light) {
+        setupProgram(camera, light, entityShaderProgram);
+        for (Model model : entities.keySet()) {
+            bindEntityModel(model, entityShaderProgram);
+            for (Entity entity : entities.get(model)) {
+                entityShaderProgram.setUniform("transformationMatrix", createTransformationMatrix(entity));
+                glDrawElements(GL_TRIANGLES, entity.getMesh().getVertexCount(), GL_UNSIGNED_INT, 0);
+            }
+            unbindModel();
+        }
+        entityShaderProgram.unbind();
+    }
+
+    public void renderTerrain(List<Terrain> terrains, Camera camera, Light light) {
+        setupProgram(camera, light, terrainShaderProgram);
+        for (Terrain terrain : terrains) {
+            bindTerrainModel(terrain.getModel(), terrainShaderProgram);
+            terrainShaderProgram.setUniform("transformationMatrix", createTransformationMatrix(terrain));
+            glDrawElements(GL_TRIANGLES, terrain.getMesh().getVertexCount(), GL_UNSIGNED_INT, 0);
+            unbindModel();
+        }
+        terrainShaderProgram.unbind();
+    }
+
+    public static void enableCulling() {
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+    }
+
+    public static void disableCulling() {
+        glDisable(GL_CULL_FACE);
     }
 
     public void cleanup() {
-        shaderProgram.cleanup();
+        entityShaderProgram.cleanup();
+        terrainShaderProgram.cleanup();
     }
 }

@@ -15,14 +15,15 @@ import java.util.List;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30.*;
-import static utils.Consts.RESOURCES_PATH;
+import static utils.Constants.*;
+import static utils.Constants.TERRAIN_VERTEX_COUNT;
 import static utils.Utils.*;
 
 public class ObjectLoader {
 
-    private final List<Integer> vaos = new ArrayList<>();
-    private final List<Integer> vbos = new ArrayList<>();
-    private final List<Integer> textures = new ArrayList<>();
+    private final static List<Integer> vaos = new ArrayList<>();
+    private final static List<Integer> vbos = new ArrayList<>();
+    private final static List<Integer> textures = new ArrayList<>();
 
     private static void processVertex(Vector3i face, List<Vector2f> textureCoordsList,
                                       List<Vector3f> normalsList, List<Integer> indicesList,
@@ -61,7 +62,45 @@ public class ObjectLoader {
         faces.add(face);
     }
 
-    public Mesh loadModel(float[] vertices, float[] textureCoords, float[] normals, int[] indices) {
+    public static Mesh generateTerrain(){
+        int count = TERRAIN_VERTEX_COUNT * TERRAIN_VERTEX_COUNT;
+        float[] vertices = new float[count * 3];
+        float[] normals = new float[count * 3];
+        float[] textureCoords = new float[count*2];
+        int[] indices = new int[6*(TERRAIN_VERTEX_COUNT-1)*(TERRAIN_VERTEX_COUNT-1)];
+        int vertexPointer = 0;
+        for(int i=0;i<TERRAIN_VERTEX_COUNT;i++){
+            for(int j=0;j<TERRAIN_VERTEX_COUNT;j++){
+                vertices[vertexPointer*3] = (float)j/((float)TERRAIN_VERTEX_COUNT - 1) * TERRAIN_SIZE;
+                vertices[vertexPointer*3+1] = 0;
+                vertices[vertexPointer*3+2] = (float)i/((float)TERRAIN_VERTEX_COUNT - 1) * TERRAIN_SIZE;
+                normals[vertexPointer*3] = 0;
+                normals[vertexPointer*3+1] = 1;
+                normals[vertexPointer*3+2] = 0;
+                textureCoords[vertexPointer*2] = (float)j/((float)TERRAIN_VERTEX_COUNT - 1);
+                textureCoords[vertexPointer*2+1] = (float)i/((float)TERRAIN_VERTEX_COUNT - 1);
+                vertexPointer++;
+            }
+        }
+        int pointer = 0;
+        for(int gz=0;gz<TERRAIN_VERTEX_COUNT-1;gz++){
+            for(int gx=0;gx<TERRAIN_VERTEX_COUNT-1;gx++){
+                int topLeft = (gz*TERRAIN_VERTEX_COUNT)+gx;
+                int topRight = topLeft + 1;
+                int bottomLeft = ((gz+1)*TERRAIN_VERTEX_COUNT)+gx;
+                int bottomRight = bottomLeft + 1;
+                indices[pointer++] = topLeft;
+                indices[pointer++] = bottomLeft;
+                indices[pointer++] = topRight;
+                indices[pointer++] = topRight;
+                indices[pointer++] = bottomLeft;
+                indices[pointer++] = bottomRight;
+            }
+        }
+        return loadModel(vertices, textureCoords, normals, indices);
+    }
+
+    public static Mesh loadModel(float[] vertices, float[] textureCoords, float[] normals, int[] indices) {
         int id = createVAO();
         storeIndicesBuffer(indices);
         storeData(0, 3, vertices);
@@ -71,7 +110,7 @@ public class ObjectLoader {
         return new Mesh(id, indices.length);
     }
 
-    public int loadTexture(String fileName) throws Exception {
+    public static Texture loadTexture(String fileName, boolean repeat) throws Exception {
         String path = RESOURCES_PATH + "/textures/" + fileName;
         int width, height;
         ByteBuffer buffer;
@@ -95,16 +134,18 @@ public class ObjectLoader {
 
 //        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 //        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        if(repeat) {    // TODO this not work  workaround in terrain shader
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        }
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
         glGenerateMipmap(GL_TEXTURE_2D);
         STBImage.stbi_image_free(buffer);
-        return id;
+        return new Texture(id);
     }
 
-    public Mesh loadOBJModel(String fileName) {
+    public static Mesh loadOBJModel(String fileName) {
         // For some reason this is the only instance where it won't find the file any other way
         // I don't understand why can't all other file calls work like this
         String path = /*RESOURCES_PATH +*/ "/models/" + fileName;
@@ -171,14 +212,14 @@ public class ObjectLoader {
         return loadModel(verticesArr, textureCoordsArr, normalArr, indicesArr);
     }
 
-    private int createVAO() {
+    private static int createVAO() {
         int id = glGenVertexArrays();
         vaos.add(id);
         glBindVertexArray(id);
         return id;
     }
 
-    private void storeData(int attribNo, int coordinateSize, float[] data) {
+    private static void storeData(int attribNo, int coordinateSize, float[] data) {
         int vbo = glGenBuffers();
         vbos.add(vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -188,7 +229,7 @@ public class ObjectLoader {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    private void storeIndicesBuffer(int[] indices) {
+    private static void storeIndicesBuffer(int[] indices) {
         int vbo = glGenBuffers();
         vbos.add(vbo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo);
@@ -196,7 +237,7 @@ public class ObjectLoader {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
     }
 
-    private void unbind() {
+    private static void unbind() {
         glBindVertexArray(0);
     }
 

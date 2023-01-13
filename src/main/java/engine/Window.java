@@ -8,11 +8,11 @@ import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
-import static utils.Consts.*;
+import static utils.Constants.*;
 
 public class Window {
 
-    private final Matrix4f projectionMatrix;
+//    private final Matrix4f projectionMatrix;
     private String title;
     private final int width;
     private final int height;
@@ -24,7 +24,7 @@ public class Window {
         this.height = height;
         this.title = title;
         this.vSync = vSync;
-        projectionMatrix = new Matrix4f();
+//        projectionMatrix = new Matrix4f();
 
         setWindowHints();
         id = glfwCreateWindow(width, height, title, NULL, NULL);
@@ -65,8 +65,6 @@ public class Window {
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_STENCIL_TEST);
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
     }
 
     public void render() {
@@ -79,6 +77,10 @@ public class Window {
 
     public boolean isKeyPressed(int keycode) {
         return glfwGetKey(id, keycode) == GLFW_PRESS;
+    }
+
+    public boolean isKeyReleased(int keycode) {
+        return glfwGetKey(id, keycode) == GLFW_RELEASE;
     }
 
     public boolean windowShouldClose() {
@@ -99,6 +101,10 @@ public class Window {
         this.title = title;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
     public int getWidth() {
         return width;
     }
@@ -111,7 +117,7 @@ public class Window {
         return id;
     }
 
-    public Matrix4f getProjectionMatrix() {
+    /*public Matrix4f getProjectionMatrix() {
         return projectionMatrix;
     }
 
@@ -123,5 +129,5 @@ public class Window {
     public Matrix4f updateProjectionMatrix(Matrix4f matrix, int width, int height) {
         float aspectRation = (float) width / height;
         return projectionMatrix.setPerspective(FOV, aspectRation, Z_NEAR, Z_FAR);
-    }
+    }*/
 }

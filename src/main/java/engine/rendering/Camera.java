@@ -58,7 +58,6 @@ public class Camera {
     }
 
     public void setRot(long x, long y, long z) {
-
         rot.x = x;
         rot.y = y;
         rot.z = z;

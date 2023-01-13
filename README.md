@@ -1,5 +1,5 @@
 ## This is the repository for a university project 
-<hr>
+
 
  This is a game made in java using:
  * <a href="lwjgl.org">LWJGL</a> for OpenGL, OpenCL, OpenAL and GLFW bindings

@@ -9,6 +9,13 @@ public class Entity {
     private float scale;
     private Model model;
 
+    public Entity(Vector3f position, Model model) {
+        this.position = position;
+        this.model = model;
+        rotation = new Vector3f();
+        scale = 1;
+    }
+
     public Entity(Vector3f position, Vector3f rotation, Model model) {
         this.position = position;
         this.rotation = rotation;
@@ -88,18 +95,18 @@ public class Entity {
     }
 
     public float getShineDamper() {
-        return model.getMaterial().getShineDamper();
+        return model.getShineDamper();
     }
 
     public void setShineDamper(float shineDamper) {
-        model.getMaterial().setShineDamper(shineDamper);
+        model.setShineDamper(shineDamper);
     }
 
     public float getReflectivity() {
-        return model.getMaterial().getReflectivity();
+        return model.getReflectivity();
     }
 
     public void setReflectivity(float reflectivity) {
-        model.getMaterial().setReflectivity(reflectivity);
+        model.setReflectivity(reflectivity);
     }
 }

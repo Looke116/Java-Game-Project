@@ -3,12 +3,11 @@ package main;
 import engine.GameEngine;
 import engine.Window;
 import engine.rendering.Render;
-import logic.TestGame;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
-import static utils.Consts.TITLE;
+import static utils.Constants.*;
 
 public class Launcher {
 
@@ -37,9 +36,8 @@ public class Launcher {
     public void launch() {
         init();
 
-        window = new Window(TITLE, 800, 600, false);
-        render = new Render(window);
-        render.init();
+        window = new Window(TITLE, WIDTH, HEIGHT, false);
+        render = new Render();
         testGame = new TestGame();
         GameEngine gameEngine = new GameEngine();
 
@@ -57,3 +55,6 @@ public class Launcher {
         errorCallback.free();
     }
 }
+
+//// Basically a place to store the id of the window, renderer and your game
+//// This is needed for

@@ -5,7 +5,7 @@ import logic.ILogic;
 import main.Launcher;
 
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
-import static utils.Consts.TITLE;
+import static utils.Constants.TITLE;
 
 public class GameEngine {
 

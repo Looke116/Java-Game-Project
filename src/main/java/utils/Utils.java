@@ -1,5 +1,7 @@
 package utils;
 
+import engine.entity.Entity;
+import engine.entity.Model;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.*;
@@ -7,6 +9,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Utils {
 

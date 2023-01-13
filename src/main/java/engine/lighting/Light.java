@@ -6,9 +6,9 @@ public class Light {
     private Vector3f position;
     private Vector3f color;
 
-    public Light(Vector3f position, Vector3f color) {
+    public Light(Vector3f position, float colorR, float colorG, float colorB) {
         this.position = position;
-        this.color = color;
+        this.color = new Vector3f(colorR, colorG, colorB);
     }
 
     public Vector3f getPosition() {
