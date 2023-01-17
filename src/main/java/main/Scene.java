@@ -4,7 +4,6 @@ import engine.entity.Entity;
 import engine.entity.Model;
 import engine.lighting.Light;
 import engine.rendering.Camera;
-import engine.rendering.Render;
 import engine.terrain.Terrain;
 import org.joml.Vector3f;
 
@@ -14,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Scene implements Serializable {
+public class Scene {
 
     private Camera camera;
     private Light light;
@@ -24,19 +23,26 @@ public class Scene implements Serializable {
     private List<Terrain> terrainList;
     private Vector3f skyColor;
 
-    public Scene(List<Entity> entityList, List<Terrain> terrainList) {
-        entities = new HashMap<>();
-        this.entityList = entityList;
-        this.terrainList = terrainList;
-        processEntities(entityList);
-    }
+    private float fogDensity;
+    private float fogGradient;
 
     public Scene(List<Entity> entityList, List<Terrain> terrainList, Camera camera, Light light) {
         this.camera = camera;
         this.light = light;
-        entities = new HashMap<>();
+        this.entities = new HashMap<>();
         this.entityList = entityList;
         this.terrainList = terrainList;
+        this.skyColor = new Vector3f(0.5f, 0.5f, 1);
+        processEntities(entityList);
+    }
+
+    public Scene(List<Entity> entityList, List<Terrain> terrainList, Camera camera, Light light, Vector3f skyColor) {
+        this.camera = camera;
+        this.light = light;
+        this.entities = new HashMap<>();
+        this.entityList = entityList;
+        this.terrainList = terrainList;
+        this.skyColor = skyColor;
         processEntities(entityList);
     }
 
@@ -54,12 +60,7 @@ public class Scene implements Serializable {
         }
     }
 
-    public void render(Render renderer) {
-        renderer.renderEntities(entities, camera, light);
-        renderer.renderTerrain(terrainList, camera, light);
-    }
-
-    public void clearScene(){
+    public void clearScene() {
         camera = null;
         light = null;
         entities.clear();
@@ -126,5 +127,29 @@ public class Scene implements Serializable {
 
     public void setEntities(Map<Model, List<Entity>> entities) {
         this.entities = entities;
+    }
+
+    public Vector3f getSkyColor() {
+        return skyColor;
+    }
+
+    public void setSkyColor(Vector3f skyColor) {
+        this.skyColor = skyColor;
+    }
+
+    public float getFogDensity() {
+        return fogDensity;
+    }
+
+    public void setFogDensity(float fogDensity) {
+        this.fogDensity = fogDensity;
+    }
+
+    public float getFogGradient() {
+        return fogGradient;
+    }
+
+    public void setFogGradient(float fogGradient) {
+        this.fogGradient = fogGradient;
     }
 }

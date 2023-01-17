@@ -12,7 +12,7 @@ public class Shader {
         if (id == 0) throw new Exception("Error creating shader! Type: " + type);
         this.type = type;
 
-        CharSequence source = loadFromFile(path);
+        CharSequence source = loadFromFile(path, Shader.class);
         source(source);
         compile();
         checkStatus();

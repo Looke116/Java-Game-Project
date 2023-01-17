@@ -4,7 +4,9 @@ import engine.entity.Entity;
 import engine.entity.Model;
 import engine.lighting.Light;
 import engine.terrain.Terrain;
+import main.Scene;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL;
 
 import java.util.List;
@@ -39,15 +41,58 @@ public class Render {
         }
     }
 
-    public void clear() {
+    private static void bindModelCommon(Model model, ShaderProgram shaderProgram) {
+        glBindVertexArray(model.getMesh().getId());
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, model.getTexture().getId());
+
+        shaderProgram.setUniform("shineDamper", model.getShineDamper());
+        shaderProgram.setUniform("reflectivity", model.getReflectivity());
+    }
+
+    private static void enableCulling() {
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+    }
+
+    private static void disableCulling() {
+        glDisable(GL_CULL_FACE);
+    }
+
+    public void clear(Vector3f color) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(0, 0, 1, 1);
+        glClearColor(color.x, color.y, color.z, 1);
     }
 
     private Matrix4f createProjectionMatrix() {
         float aspectRation = (float) WIDTH / HEIGHT;
         projectionMatrix = new Matrix4f();
         return projectionMatrix.setPerspective(FOV, aspectRation, Z_NEAR, Z_FAR);
+    }
+
+    private void bindEntityModel(Model model, ShaderProgram shaderProgram) {
+        bindModelCommon(model, shaderProgram);
+
+        if (model.getTransparency()) {
+            disableCulling();
+        }
+        entityShaderProgram.setUniform("useFakeLighting", model.isUseFakeLighting());
+    }
+
+    private void bindTerrainModel(Model model, ShaderProgram shaderProgram) {
+        bindModelCommon(model, shaderProgram);
+    }
+
+    private void unbindModel() {
+        enableCulling();
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(2);
+        glBindVertexArray(0);
     }
 
     private void initShaderCommon(ShaderProgram shaderProgram) throws Exception {
@@ -60,6 +105,9 @@ public class Render {
         shaderProgram.createUniform("lightColor");
         shaderProgram.createUniform("shineDamper");
         shaderProgram.createUniform("reflectivity");
+        shaderProgram.createUniform("skyColor");
+        shaderProgram.createUniform("fogDensity");
+        shaderProgram.createUniform("fogGradient");
     }
 
     private void initEntityShader() throws Exception {
@@ -70,40 +118,17 @@ public class Render {
         entityShaderProgram.createUniform("useFakeLighting");
     }
 
-    private void initTerrainShader() throws Exception{
+    private void initTerrainShader() throws Exception {
         terrainShaderProgram.createShader(GL_VERTEX_SHADER, "terrainVertex.glsl");
         terrainShaderProgram.createShader(GL_FRAGMENT_SHADER, "terrainFragment.glsl");
 
         initShaderCommon(terrainShaderProgram);
     }
 
-    private static void bindModel(Model model, ShaderProgram shaderProgram) {
-        glBindVertexArray(model.getMesh().getId());
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
+    private void setupProgramCommon(Scene scene, ShaderProgram shaderProgram) {
+        Camera camera = scene.getCamera();
+        Light light = scene.getLight();
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, model.getTexture().getId());
-        shaderProgram.setUniform("shineDamper", model.getShineDamper());
-        shaderProgram.setUniform("reflectivity", model.getReflectivity());
-    }
-
-    static void bindEntityModel(Model model, ShaderProgram shaderProgram) {
-        bindModel(model, shaderProgram);
-
-        if (model.getTransparency()) {
-            disableCulling();
-        }
-
-        shaderProgram.setUniform("useFakeLighting", model.isUseFakeLighting());
-    }
-
-    static void bindTerrainModel(Model model, ShaderProgram shaderProgram) {
-        bindModel(model, shaderProgram);
-    }
-
-    private void setupProgram(Camera camera, Light light, ShaderProgram shaderProgram) {
         shaderProgram.bind();
         shaderProgram.setUniform("textureSampler", 0);
         shaderProgram.setUniform("projectionMatrix", projectionMatrix);
@@ -111,18 +136,28 @@ public class Render {
 
         shaderProgram.setUniform("lightPosition", light.getPosition());
         shaderProgram.setUniform("lightColor", light.getColor());
+        shaderProgram.setUniform("skyColor", scene.getSkyColor());
+        shaderProgram.setUniform("fogDensity", scene.getFogDensity());
+        shaderProgram.setUniform("fogGradient", scene.getFogGradient());
     }
 
-    static void unbindModel() {
-        enableCulling();
-        glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);
-        glDisableVertexAttribArray(2);
-        glBindVertexArray(0);
+    private void setupEntityProgram(Scene scene) {
+        setupProgramCommon(scene, entityShaderProgram);
+//        entityShaderProgram.setUniform("skyColor", scene.getSkyColor());
     }
 
-    public void renderEntities(Map<Model, List<Entity>> entities, Camera camera, Light light) {
-        setupProgram(camera, light, entityShaderProgram);
+    private void setupTerrainProgram(Scene scene) {
+        setupProgramCommon(scene, terrainShaderProgram);
+    }
+
+    public void render(Scene scene) {
+        clear(scene.getSkyColor());
+        renderEntities(scene.getEntities(), scene);
+        renderTerrain(scene.getTerrainList(), scene);
+    }
+
+    private void renderEntities(Map<Model, List<Entity>> entities, Scene scene) {
+        setupEntityProgram(scene);
         for (Model model : entities.keySet()) {
             bindEntityModel(model, entityShaderProgram);
             for (Entity entity : entities.get(model)) {
@@ -134,8 +169,8 @@ public class Render {
         entityShaderProgram.unbind();
     }
 
-    public void renderTerrain(List<Terrain> terrains, Camera camera, Light light) {
-        setupProgram(camera, light, terrainShaderProgram);
+    private void renderTerrain(List<Terrain> terrains, Scene scene) {
+        setupTerrainProgram(scene);
         for (Terrain terrain : terrains) {
             bindTerrainModel(terrain.getModel(), terrainShaderProgram);
             terrainShaderProgram.setUniform("transformationMatrix", createTransformationMatrix(terrain));
@@ -143,15 +178,6 @@ public class Render {
             unbindModel();
         }
         terrainShaderProgram.unbind();
-    }
-
-    public static void enableCulling() {
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
-    }
-
-    public static void disableCulling() {
-        glDisable(GL_CULL_FACE);
     }
 
     public void cleanup() {

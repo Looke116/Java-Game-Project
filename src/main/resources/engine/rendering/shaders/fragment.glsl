@@ -4,6 +4,7 @@ in vec2 textureCoords;
 in vec3 surfaceNormal;
 in vec3 lightVector;
 in vec3 cameraVector;
+in float visibility;
 
 out vec4 fragColor;
 
@@ -11,6 +12,7 @@ uniform sampler2D textureSampler;
 uniform vec3 lightColor;
 uniform float shineDamper;
 uniform float reflectivity;
+uniform vec3 skyColor;
 
 void main() {
     vec3 unitNormal = normalize(surfaceNormal);
@@ -26,5 +28,11 @@ void main() {
     float damperFactor = pow(specularFactor, shineDamper);
     vec3 specularLight = damperFactor * reflectivity * lightColor;
 
-    fragColor = vec4(diffuse, 1.0) * texture(textureSampler, textureCoords) + vec4(specularLight, 1.0);
+    vec4 textureColor = texture(textureSampler, textureCoords);
+    if(textureColor.a < 0.5){
+        discard;
+    }
+
+    fragColor = vec4(diffuse, 1.0) * textureColor + vec4(specularLight, 1.0);
+    fragColor = mix(vec4(skyColor, 1.0), fragColor, visibility);
 }

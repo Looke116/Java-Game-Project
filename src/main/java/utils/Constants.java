@@ -20,6 +20,8 @@ public class Constants {
 
     // Mouse Constants
     public final static float MOUSE_SENSITIVITY = 1.0f;
+
+    // Camera Constants
     public final static float CAMERA_MOVE_SPEED = 0.05f;
 
     // Terrain Constants

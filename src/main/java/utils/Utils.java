@@ -1,15 +1,14 @@
 package utils;
 
-import engine.entity.Entity;
-import engine.entity.Model;
 import org.lwjgl.system.MemoryUtil;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class Utils {
 
@@ -27,11 +26,11 @@ public class Utils {
         return buffer;
     }
 
-    public static CharSequence loadFromFile(String path) {
+    public static CharSequence loadFromFile(String path, Class<?> resources) {
         StringBuilder builder = new StringBuilder();
 
-        try (InputStream in = new FileInputStream(path);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                resources.getResourceAsStream(path)))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 builder.append(line).append("\n");
@@ -45,14 +44,15 @@ public class Utils {
         return source;
     }
 
-    public static List<String> readAllLines(String path) {
+    public static List<String> readAllLines(String path, Class<?> resources) {
         List<String> strings = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(Class.forName(Utils.class.getName()).getResourceAsStream(path)))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                resources.getResourceAsStream(path)))) {
             String line;
             while ((line = br.readLine()) != null) {
                 strings.add(line);
             }
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return strings;

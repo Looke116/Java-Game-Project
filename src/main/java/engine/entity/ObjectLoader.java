@@ -6,9 +6,12 @@ import org.joml.Vector3i;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,7 +114,8 @@ public class ObjectLoader {
     }
 
     public static Texture loadTexture(String fileName, boolean repeat) throws Exception {
-        String path = RESOURCES_PATH + "/textures/" + fileName;
+        String path = RESOURCES_PATH + "engine/entity/textures/" + fileName;
+//        String stream = Texture.class.getResource("textures/" + fileName).toString();
         int width, height;
         ByteBuffer buffer;
         try (MemoryStack stack = MemoryStack.stackPush()) {
@@ -120,7 +124,7 @@ public class ObjectLoader {
             IntBuffer c = stack.mallocInt(1);
 
             buffer = STBImage.stbi_load(path, w, h, c, 4);
-            if (buffer == null) throw new Exception("Image File " + path + " could not be loaded!" +
+            if (buffer == null) throw new FileNotFoundException("Image File " + path + " could not be loaded!" +
                     "\n[Info] - " + STBImage.stbi_failure_reason());
 
             width = w.get();
@@ -148,8 +152,8 @@ public class ObjectLoader {
     public static Mesh loadOBJModel(String fileName) {
         // For some reason this is the only instance where it won't find the file any other way
         // I don't understand why can't all other file calls work like this
-        String path = /*RESOURCES_PATH +*/ "/models/" + fileName;
-        List<String> lines = readAllLines(path);
+        String path = /*RESOURCES_PATH +*/ "models/" + fileName;
+        List<String> lines = readAllLines(path, Mesh.class);
 
         List<Vector3f> verticesList = new ArrayList<>();
         List<Vector3f> normalsList = new ArrayList<>();

@@ -183,11 +183,10 @@ public class TestGame implements ILogic {
 
     @Override
     public void render() {
-        render.clear();
         if (map == Map.PLAINS) {
-            plains.render(render);
+            render.render(plains);
         } else if (map == Map.FOREST) {
-            forest.render(render);
+            render.render(forest);
         }
     }
 
@@ -287,7 +286,9 @@ public class TestGame implements ILogic {
         plains = new Scene(entityList,
                 terrainList,
                 new Camera(),
-                new Light(new Vector3f(-1, 1000, 0), 1, 1, 1));
+                new Light());
+        plains.setFogDensity(0.007f);
+        plains.setFogGradient(3);
     }
 
     void setUpForest() throws Exception {
@@ -335,12 +336,14 @@ public class TestGame implements ILogic {
         terrainList.add(terrain3);
         terrainList.add(terrain4);
 
+        Light light = new Light();
+        light.setColor(0.4f,0.4f,0.4f);
         forest = new Scene(entityList,
                 terrainList,
                 new Camera(),
-                new Light(new Vector3f(-1, 1000, 0), 1, 1, 1));
+                light,
+                new Vector3f(0.3f, 0.3f, 0.3f));
+        forest.setFogDensity(0.01f);
+        forest.setFogGradient(1f);
     }
 }
-
-
-// TODO add database integration

@@ -40,13 +40,7 @@ public class Launcher {
         render = new Render();
         testGame = new TestGame();
         GameEngine gameEngine = new GameEngine();
-
-
-        try {
-            gameEngine.start();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        gameEngine.run();
 
         cleanup();
     }
@@ -55,6 +49,3 @@ public class Launcher {
         errorCallback.free();
     }
 }
-
-//// Basically a place to store the id of the window, renderer and your game
-//// This is needed for

@@ -7,7 +7,7 @@ import main.Launcher;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static utils.Constants.TITLE;
 
-public class GameEngine {
+public class GameEngine implements Runnable{
 
     // Timing Variables
     private static final long NANOSECOND = 1000000000L;
@@ -28,7 +28,7 @@ public class GameEngine {
         GameEngine.fps = fps;
     }
 
-    public void start() throws Exception {
+    private void init() throws Exception {
         if (isRunning) return;
         isRunning = true;
 
@@ -37,8 +37,6 @@ public class GameEngine {
         gameLogic.init();
         mouseInput = new MouseInput();
         mouseInput.init();
-
-        run();
     }
 
     public void stop() {
@@ -47,7 +45,13 @@ public class GameEngine {
         cleanup();
     }
 
-    private void run() {
+    public void run() {
+        try {
+            init();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         int frames = 0;
         long frameCounter = 0;
         long lastTime = System.nanoTime();

@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL20.*;
-import static utils.Constants.RESOURCES_PATH;
 
 public class ShaderProgram {
 
@@ -62,7 +61,7 @@ public class ShaderProgram {
     }
 
     public void createShader(int type, String fileName) throws Exception {
-        Shader shader = new Shader(type, RESOURCES_PATH + "shaders/" + fileName);
+        Shader shader = new Shader(type, "shaders/" + fileName);
         glAttachShader(id, shader.getID());
         shaders.add(shader);
     }
