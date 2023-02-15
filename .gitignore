@@ -8,6 +8,7 @@ hs_err_pid*
 out
 src/main/diff
 src/test
+v0.1-jar.zip
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

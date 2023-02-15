@@ -24,11 +24,10 @@ public class Window {
         this.height = height;
         this.title = title;
         this.vSync = vSync;
-//        projectionMatrix = new Matrix4f();
 
         setWindowHints();
         id = glfwCreateWindow(width, height, title, NULL, NULL);
-        if (id == NULL) throw new RuntimeException("Could not create GLFW window");
+        if (id == NULL) throw new RuntimeException("Could not create GLFW window. Is GLFW initialized?");
         setWindowCallbacks();
         centerWindow();
         glfwMakeContextCurrent(id);

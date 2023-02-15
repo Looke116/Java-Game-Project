@@ -71,6 +71,15 @@ public class Scene {
 
     public void addEntity(Entity entity) {
         Model model = entity.getModel();
+        List<Entity> list;
+        if (entities.get(model) != null) {
+            list = entities.get(model);
+        }else {
+            list = new ArrayList<>();
+        }
+        list.add(entity);
+        entities.put(model, list);
+        entityList.add(entity);
     }
 
     public void addTerrain(Terrain terrain) {

@@ -4,30 +4,25 @@ import engine.Window;
 import engine.entity.Entity;
 import engine.entity.Material;
 import engine.entity.Model;
-import engine.entity.ObjectLoader;
 import engine.io.MouseInput;
 import engine.lighting.Light;
 import engine.rendering.Camera;
 import engine.rendering.Render;
 import engine.terrain.Terrain;
-import logic.ILogic;
+import logic.GameLogic;
 import org.joml.Vector3f;
+import utils.ObjectLoader;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static engine.entity.ObjectLoader.loadOBJModel;
-import static engine.entity.ObjectLoader.loadTexture;
 import static org.lwjgl.glfw.GLFW.*;
 import static utils.Constants.CAMERA_MOVE_SPEED;
+import static utils.ObjectLoader.loadOBJModel;
+import static utils.ObjectLoader.loadTexture;
 
-enum Map {
-    PLAINS,
-    FOREST
-}
-
-public class TestGame implements ILogic {
+public class TestGame implements GameLogic {
 
     private final Window window;
     private final Render render;
@@ -337,7 +332,7 @@ public class TestGame implements ILogic {
         terrainList.add(terrain4);
 
         Light light = new Light();
-        light.setColor(0.4f,0.4f,0.4f);
+        light.setColor(0.4f, 0.4f, 0.4f);
         forest = new Scene(entityList,
                 terrainList,
                 new Camera(),
@@ -345,5 +340,10 @@ public class TestGame implements ILogic {
                 new Vector3f(0.3f, 0.3f, 0.3f));
         forest.setFogDensity(0.01f);
         forest.setFogGradient(1f);
+    }
+
+    enum Map {
+        PLAINS,
+        FOREST
     }
 }

@@ -1,7 +1,7 @@
 package engine;
 
 import engine.io.MouseInput;
-import logic.ILogic;
+import logic.GameLogic;
 import main.Launcher;
 
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
@@ -17,7 +17,7 @@ public class GameEngine implements Runnable{
 
     private boolean isRunning;
     private Window window;
-    private ILogic gameLogic;
+    private GameLogic gameLogic;
     private MouseInput mouseInput;
 
     public static int getFps() {

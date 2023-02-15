@@ -1,5 +1,7 @@
 package engine.rendering;
 
+import engine.exceptions.ShaderCreationException;
+
 import static org.lwjgl.opengl.GL20.*;
 import static utils.Utils.loadFromFile;
 
@@ -9,7 +11,7 @@ public class Shader {
 
     Shader(int type, String path) throws Exception {
         id = glCreateShader(type);
-        if (id == 0) throw new Exception("Error creating shader! Type: " + type);
+        if (id == 0) throw new ShaderCreationException("Error creating shader! Type: " + type);
         this.type = type;
 
         CharSequence source = loadFromFile(path, Shader.class);
